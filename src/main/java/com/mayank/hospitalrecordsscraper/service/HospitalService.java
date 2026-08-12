@@ -5,11 +5,12 @@ import com.mayank.hospitalrecordsscraper.repository.HospitalRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
-@Service // This class contains business logic and is a service component in the Spring context so manage it   
+@Service
 public class HospitalService {
 
-    private final HospitalRepository hospitalRepository; // Our Service depends on the Repository. 
+    private final HospitalRepository hospitalRepository;
 
     public HospitalService(HospitalRepository hospitalRepository) {
         this.hospitalRepository = hospitalRepository;
@@ -18,4 +19,46 @@ public class HospitalService {
     public List<Hospital> getAllHospitals() {
         return hospitalRepository.findAll();
     }
+
+    public Hospital getHospitalById(Integer id) {
+        Optional<Hospital> hospital = hospitalRepository.findById(id);
+
+        return hospital.orElse(null);
+    }
+
+    public Hospital createHospital(Hospital hospital) {
+        return hospitalRepository.save(hospital);
+    }
+
+    public Hospital updateHospital(Integer id, Hospital hospitalDetails) {
+
+        Hospital hospital = hospitalRepository.findById(id)
+                .orElse(null);
+
+        if (hospital == null) {
+            return null;
+        }
+
+         hospital.setName(hospitalDetails.getName());
+         hospital.setCity(hospitalDetails.getCity());
+         hospital.setAddress(hospitalDetails.getAddress());
+         hospital.setPhone(hospitalDetails.getPhone());
+
+
+        // We'll update the fields of Hospital here.
+
+        return hospitalRepository.save(hospital);
+    }
+
+    public boolean deleteHospital(Integer id) {
+
+        if (!hospitalRepository.existsById(id)) {
+            return false;
+        }
+
+        hospitalRepository.deleteById(id);
+        return true;
+    }
+    
+    
 }
