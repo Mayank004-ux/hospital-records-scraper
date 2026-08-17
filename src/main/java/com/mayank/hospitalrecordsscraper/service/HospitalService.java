@@ -2,6 +2,8 @@ package com.mayank.hospitalrecordsscraper.service;
 
 import com.mayank.hospitalrecordsscraper.entity.Hospital;
 import com.mayank.hospitalrecordsscraper.repository.HospitalRepository;
+import com.mayank.hospitalrecordsscraper.scraper.HospitalScraper;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,9 +13,11 @@ import java.util.Optional;
 public class HospitalService {
 
     private final HospitalRepository hospitalRepository;
+    private final HospitalScraper hospitalScraper;
 
-    public HospitalService(HospitalRepository hospitalRepository) {
+    public HospitalService(HospitalRepository hospitalRepository ,  HospitalScraper hospitalScraper) {
         this.hospitalRepository = hospitalRepository;
+         this.hospitalScraper = hospitalScraper;
     }
 
     public List<Hospital> getAllHospitals() {
@@ -59,6 +63,17 @@ public class HospitalService {
         hospitalRepository.deleteById(id);
         return true;
     }
-    
-    
+    public Hospital saveHospital(Hospital hospital) {
+    return hospitalRepository.save(hospital);
+}
+public List<Hospital> saveHospitals(List<Hospital> hospitals) {
+    return hospitalRepository.saveAll(hospitals);
+}
+    public List<Hospital> scrapeAndSave(String html) {
+
+    List<Hospital> hospitals =
+            hospitalScraper.extractHospitals(html);
+
+    return hospitalRepository.saveAll(hospitals);
+}
 }
