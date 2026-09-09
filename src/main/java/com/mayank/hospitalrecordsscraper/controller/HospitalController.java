@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 
 @RestController
@@ -174,6 +176,38 @@ public List<Hospital> saveScraperTest() throws Exception {
 
             </div>
             """;
+
+    List<Hospital> hospitals =
+            hospitalScraper.extractHospitals(html);
+
+    return hospitalService.saveHospitals(hospitals);
+}
+@GetMapping("/api/scraper/fetch-test")
+public String fetchTest() throws Exception {
+
+    return hospitalScraper.fetchPage(
+            "https://example.com"
+    );
+}
+@GetMapping("/api/scraper/local-directory-test")
+public List<Hospital> localDirectoryTest() throws Exception {
+
+    String html = Files.readString(
+            Paths.get(
+                    "src/main/resources/hospital-directory.html"
+            )
+    );
+
+    return hospitalScraper.extractHospitals(html);
+}
+@PostMapping("/api/scraper/import")
+public List<Hospital> importHospitals() throws Exception {
+
+    String html = Files.readString(
+            Paths.get(
+                    "src/main/resources/hospital-directory.html"
+            )
+    );
 
     List<Hospital> hospitals =
             hospitalScraper.extractHospitals(html);

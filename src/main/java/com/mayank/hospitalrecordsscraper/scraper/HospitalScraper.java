@@ -24,21 +24,28 @@ public class HospitalScraper {
         this.httpClient = HttpClient.newHttpClient();
     }
 
-    public String fetchPage(String url) throws Exception {
+   public String fetchPage(String url) throws Exception {
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .GET()
-                .build();
+    HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .GET()
+            .build();
 
-        HttpResponse<String> response =
-                httpClient.send(
-                        request,
-                        HttpResponse.BodyHandlers.ofString()
-                );
+    HttpResponse<String> response =
+            httpClient.send(
+                    request,
+                    HttpResponse.BodyHandlers.ofString()
+            );
 
-        return response.body();
+    if (response.statusCode() != 200) {
+        throw new RuntimeException(
+                "Failed to fetch page. Status: "
+                        + response.statusCode()
+        );
     }
+
+    return response.body();
+}
     public String extractTitle(String html) {
 
     Document document = Jsoup.parse(html);
@@ -49,16 +56,25 @@ public List<Hospital> extractHospitals(String html) {
 
     Document document = Jsoup.parse(html);
 
-    Elements hospitalCards = document.select(".hospital-card");
+    Elements hospitalCards =
+            document.select(".hospital");
 
-    List<Hospital> hospitals = new ArrayList<>();
+    List<Hospital> hospitals =
+            new ArrayList<>();
 
     for (Element card : hospitalCards) {
 
-        String name = card.select(".hospital-name").text();
-        String city = card.select(".city").text();
-        String address = card.select(".address").text();
-        String phone = card.select(".phone").text();
+        String name =
+                card.select(".hospital-name").text();
+
+        String city =
+                card.select(".hospital-city").text();
+
+        String address =
+                card.select(".hospital-address").text();
+
+        String phone =
+                card.select(".hospital-phone").text();
 
         Hospital hospital = new Hospital();
 
@@ -71,5 +87,11 @@ public List<Hospital> extractHospitals(String html) {
     }
 
     return hospitals;
+}
+public List<Hospital> scrapeWebsite(String url) throws Exception {
+
+    String html = fetchPage(url);
+
+    return extractHospitals(html);
 }
 }

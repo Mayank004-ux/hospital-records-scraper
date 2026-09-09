@@ -6,6 +6,7 @@ import com.mayank.hospitalrecordsscraper.scraper.HospitalScraper;
 
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -67,7 +68,23 @@ public class HospitalService {
     return hospitalRepository.save(hospital);
 }
 public List<Hospital> saveHospitals(List<Hospital> hospitals) {
-    return hospitalRepository.saveAll(hospitals);
+
+    List<Hospital> newHospitals = new ArrayList<>();
+
+    for (Hospital hospital : hospitals) {
+
+        boolean exists = hospitalRepository
+                .existsByNameAndCity(
+                        hospital.getName(),
+                        hospital.getCity()
+                );
+
+        if (!exists) {
+            newHospitals.add(hospital);
+        }
+    }
+
+    return hospitalRepository.saveAll(newHospitals);
 }
     public List<Hospital> scrapeAndSave(String html) {
 
@@ -76,4 +93,5 @@ public List<Hospital> saveHospitals(List<Hospital> hospitals) {
 
     return hospitalRepository.saveAll(hospitals);
 }
+
 }
