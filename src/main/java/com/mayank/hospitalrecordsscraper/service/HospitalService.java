@@ -1,8 +1,8 @@
 package com.mayank.hospitalrecordsscraper.service;
 
+import com.mayank.hospitalrecordsscraper.dto.ImportResponse;
 import com.mayank.hospitalrecordsscraper.entity.Hospital;
 import com.mayank.hospitalrecordsscraper.repository.HospitalRepository;
-import com.mayank.hospitalrecordsscraper.scraper.HospitalScraper;
 
 import org.springframework.stereotype.Service;
 
@@ -14,11 +14,9 @@ import java.util.Optional;
 public class HospitalService {
 
     private final HospitalRepository hospitalRepository;
-    private final HospitalScraper hospitalScraper;
 
-    public HospitalService(HospitalRepository hospitalRepository ,  HospitalScraper hospitalScraper) {
+    public HospitalService(HospitalRepository hospitalRepository) {
         this.hospitalRepository = hospitalRepository;
-         this.hospitalScraper = hospitalScraper;
     }
 
     public List<Hospital> getAllHospitals() {
@@ -26,7 +24,9 @@ public class HospitalService {
     }
 
     public Hospital getHospitalById(Integer id) {
-        Optional<Hospital> hospital = hospitalRepository.findById(id);
+
+        Optional<Hospital> hospital =
+                hospitalRepository.findById(id);
 
         return hospital.orElse(null);
     }
@@ -35,22 +35,22 @@ public class HospitalService {
         return hospitalRepository.save(hospital);
     }
 
-    public Hospital updateHospital(Integer id, Hospital hospitalDetails) {
+    public Hospital updateHospital(
+            Integer id,
+            Hospital hospitalDetails) {
 
-        Hospital hospital = hospitalRepository.findById(id)
-                .orElse(null);
+        Hospital hospital =
+                hospitalRepository.findById(id)
+                        .orElse(null);
 
         if (hospital == null) {
             return null;
         }
 
-         hospital.setName(hospitalDetails.getName());
-         hospital.setCity(hospitalDetails.getCity());
-         hospital.setAddress(hospitalDetails.getAddress());
-         hospital.setPhone(hospitalDetails.getPhone());
-
-
-        // We'll update the fields of Hospital here.
+        hospital.setName(hospitalDetails.getName());
+        hospital.setCity(hospitalDetails.getCity());
+        hospital.setAddress(hospitalDetails.getAddress());
+        hospital.setPhone(hospitalDetails.getPhone());
 
         return hospitalRepository.save(hospital);
     }
@@ -64,34 +64,68 @@ public class HospitalService {
         hospitalRepository.deleteById(id);
         return true;
     }
+
+    
+
     public Hospital saveHospital(Hospital hospital) {
-    return hospitalRepository.save(hospital);
-}
-public List<Hospital> saveHospitals(List<Hospital> hospitals) {
-
-    List<Hospital> newHospitals = new ArrayList<>();
-
-    for (Hospital hospital : hospitals) {
-
-        boolean exists = hospitalRepository
-                .existsByNameAndCity(
-                        hospital.getName(),
-                        hospital.getCity()
-                );
-
-        if (!exists) {
-            newHospitals.add(hospital);
-        }
+        return hospitalRepository.save(hospital);
     }
 
-    return hospitalRepository.saveAll(newHospitals);
-}
-    public List<Hospital> scrapeAndSave(String html) {
 
-    List<Hospital> hospitals =
-            hospitalScraper.extractHospitals(html);
+    public ImportResponse saveHospitals(
+            List<Hospital> hospitals) {
 
-    return hospitalRepository.saveAll(hospitals);
-}
+        List<Hospital> newHospitals =
+                new ArrayList<>();
 
+        int duplicates = 0;
+        int invalid = 0;
+
+        for (Hospital hospital : hospitals) {
+
+            // Step 1: Validate hospital
+            if (!isValidHospital(hospital)) {
+                invalid++;
+                continue;
+            }
+
+            // Step 2: Check duplicate
+            boolean exists =
+                    hospitalRepository
+                            .existsByNameAndCity(
+                                    hospital.getName(),
+                                    hospital.getCity()
+                            );
+
+            if (exists) {
+                duplicates++;
+                continue;
+            }
+
+            // Step 3: Add new hospital
+            newHospitals.add(hospital);
+        }
+
+        // Step 4: Save new hospitals
+        List<Hospital> savedHospitals =
+                hospitalRepository.saveAll(newHospitals);
+
+        // Step 5: Create import report
+        return new ImportResponse(
+                hospitals.size(),
+                savedHospitals.size(),
+                duplicates,
+                invalid
+        );
+    }
+
+    
+
+    private boolean isValidHospital(Hospital hospital) {
+
+        return hospital.getName() != null
+                && !hospital.getName().isBlank()
+                && hospital.getCity() != null
+                && !hospital.getCity().isBlank();
+    }
 }

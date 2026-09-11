@@ -1,5 +1,6 @@
 package com.mayank.hospitalrecordsscraper.controller;
 
+import com.mayank.hospitalrecordsscraper.dto.ImportResponse;
 import com.mayank.hospitalrecordsscraper.entity.Hospital;
 import com.mayank.hospitalrecordsscraper.scraper.HospitalScraper;
 import com.mayank.hospitalrecordsscraper.service.HospitalService;
@@ -74,144 +75,23 @@ public class HospitalController {
         return "Hospital deleted successfully";
     }
 
+   
     // =========================
-    // Scraper Test API
+    // Actual Scraper Import API
     // =========================
 
-   @GetMapping("/api/scraper/test")
-public String testScraper() throws Exception {
+    @PostMapping("/api/scraper/import")
+    public ImportResponse importHospitals() throws Exception {
 
-    String html = hospitalScraper.fetchPage("https://example.com");
+        String html = Files.readString(
+                Paths.get(
+                        "src/main/resources/hospital-directory.html"
+                )
+        );
 
-    return hospitalScraper.extractTitle(html);
-}
-@GetMapping("/api/scraper/local-test")
-public List<Hospital> localScraperTest() throws Exception {
+        List<Hospital> hospitals =
+                hospitalScraper.extractHospitals(html);
 
-    String html = """
-            <div class="hospital-card">
-
-                <h2 class="hospital-name">
-                    Apollo Hospital
-                </h2>
-
-                <p class="city">
-                    Delhi
-                </p>
-
-                <p class="address">
-                    Sarita Vihar, New Delhi
-                </p>
-
-                <p class="phone">
-                    011-26925858
-                </p>
-
-            </div>
-
-            <div class="hospital-card">
-
-                <h2 class="hospital-name">
-                    Fortis Hospital
-                </h2>
-
-                <p class="city">
-                    Gurugram
-                </p>
-
-                <p class="address">
-                    Sector 44, Gurugram
-                </p>
-
-                <p class="phone">
-                    0124-4962200
-                </p>
-
-            </div>
-            """;
-
-    return hospitalScraper.extractHospitals(html);
-}
-@PostMapping("/api/scraper/save-test")
-public List<Hospital> saveScraperTest() throws Exception {
-
-    String html = """
-            <div class="hospital-card">
-
-                <h2 class="hospital-name">
-                    Apollo Hospital
-                </h2>
-
-                <p class="city">
-                    Delhi
-                </p>
-
-                <p class="address">
-                    Sarita Vihar, New Delhi
-                </p>
-
-                <p class="phone">
-                    011-26925858
-                </p>
-
-            </div>
-
-            <div class="hospital-card">
-
-                <h2 class="hospital-name">
-                    Fortis Hospital
-                </h2>
-
-                <p class="city">
-                    Gurugram
-                </p>
-
-                <p class="address">
-                    Sector 44, Gurugram
-                </p>
-
-                <p class="phone">
-                    0124-4962200
-                </p>
-
-            </div>
-            """;
-
-    List<Hospital> hospitals =
-            hospitalScraper.extractHospitals(html);
-
-    return hospitalService.saveHospitals(hospitals);
-}
-@GetMapping("/api/scraper/fetch-test")
-public String fetchTest() throws Exception {
-
-    return hospitalScraper.fetchPage(
-            "https://example.com"
-    );
-}
-@GetMapping("/api/scraper/local-directory-test")
-public List<Hospital> localDirectoryTest() throws Exception {
-
-    String html = Files.readString(
-            Paths.get(
-                    "src/main/resources/hospital-directory.html"
-            )
-    );
-
-    return hospitalScraper.extractHospitals(html);
-}
-@PostMapping("/api/scraper/import")
-public List<Hospital> importHospitals() throws Exception {
-
-    String html = Files.readString(
-            Paths.get(
-                    "src/main/resources/hospital-directory.html"
-            )
-    );
-
-    List<Hospital> hospitals =
-            hospitalScraper.extractHospitals(html);
-
-    return hospitalService.saveHospitals(hospitals);
-}
+        return hospitalService.saveHospitals(hospitals);
+    }
 }
