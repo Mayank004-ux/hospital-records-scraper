@@ -24,7 +24,7 @@ public class HospitalScraper {
         this.httpClient = HttpClient.newHttpClient();
     }
 
-   public String fetchPage(String url) throws Exception {
+  public String fetchPage(String url) throws Exception {
 
     HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(url))
@@ -39,7 +39,7 @@ public class HospitalScraper {
 
     if (response.statusCode() != 200) {
         throw new RuntimeException(
-                "Failed to fetch page. Status: "
+                "Failed to fetch website. HTTP status: "
                         + response.statusCode()
         );
     }
@@ -94,4 +94,5 @@ public List<Hospital> scrapeWebsite(String url) throws Exception {
 
     return extractHospitals(html);
 }
+
 }

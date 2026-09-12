@@ -3,7 +3,9 @@ package com.mayank.hospitalrecordsscraper.service;
 import com.mayank.hospitalrecordsscraper.dto.ImportResponse;
 import com.mayank.hospitalrecordsscraper.entity.Hospital;
 import com.mayank.hospitalrecordsscraper.repository.HospitalRepository;
+import com.mayank.hospitalrecordsscraper.scraper.HospitalScraper;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -14,14 +16,52 @@ import java.util.Optional;
 public class HospitalService {
 
     private final HospitalRepository hospitalRepository;
+    private final HospitalScraper hospitalScraper;
 
-    public HospitalService(HospitalRepository hospitalRepository) {
+    @Value("${scraper.url}")
+    private String scraperUrl;
+
+    public HospitalService(
+            HospitalRepository hospitalRepository,
+            HospitalScraper hospitalScraper) {
+
         this.hospitalRepository = hospitalRepository;
+        this.hospitalScraper = hospitalScraper;
     }
+
+    // =========================
+    // Scraper Import
+    // =========================
+
+    public ImportResponse scrapeAndImport() {
+
+        try {
+
+            List<Hospital> hospitals =
+                    hospitalScraper.scrapeWebsite(scraperUrl);
+
+            return saveHospitals(hospitals);
+
+        } catch (Exception e) {
+
+            throw new RuntimeException(
+                    "Unable to fetch hospital data from scraper website",
+                    e
+            );
+        }
+    }
+
+    // =========================
+    // Get All Hospitals
+    // =========================
 
     public List<Hospital> getAllHospitals() {
         return hospitalRepository.findAll();
     }
+
+    // =========================
+    // Get Hospital By ID
+    // =========================
 
     public Hospital getHospitalById(Integer id) {
 
@@ -31,9 +71,17 @@ public class HospitalService {
         return hospital.orElse(null);
     }
 
+    // =========================
+    // Create Hospital
+    // =========================
+
     public Hospital createHospital(Hospital hospital) {
         return hospitalRepository.save(hospital);
     }
+
+    // =========================
+    // Update Hospital
+    // =========================
 
     public Hospital updateHospital(
             Integer id,
@@ -55,6 +103,10 @@ public class HospitalService {
         return hospitalRepository.save(hospital);
     }
 
+    // =========================
+    // Delete Hospital
+    // =========================
+
     public boolean deleteHospital(Integer id) {
 
         if (!hospitalRepository.existsById(id)) {
@@ -65,12 +117,17 @@ public class HospitalService {
         return true;
     }
 
-    
+    // =========================
+    // Save Single Hospital
+    // =========================
 
     public Hospital saveHospital(Hospital hospital) {
         return hospitalRepository.save(hospital);
     }
 
+    // =========================
+    // Save Scraped Hospitals
+    // =========================
 
     public ImportResponse saveHospitals(
             List<Hospital> hospitals) {
@@ -119,7 +176,9 @@ public class HospitalService {
         );
     }
 
-    
+    // =========================
+    // Hospital Validation
+    // =========================
 
     private boolean isValidHospital(Hospital hospital) {
 

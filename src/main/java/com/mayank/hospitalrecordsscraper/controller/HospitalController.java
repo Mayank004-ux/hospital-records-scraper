@@ -2,7 +2,6 @@ package com.mayank.hospitalrecordsscraper.controller;
 
 import com.mayank.hospitalrecordsscraper.dto.ImportResponse;
 import com.mayank.hospitalrecordsscraper.entity.Hospital;
-import com.mayank.hospitalrecordsscraper.scraper.HospitalScraper;
 import com.mayank.hospitalrecordsscraper.service.HospitalService;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,23 +12,20 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 
 @RestController
 public class HospitalController {
 
     private final HospitalService hospitalService;
-    private final HospitalScraper hospitalScraper;
 
-    public HospitalController(
-            HospitalService hospitalService,
-            HospitalScraper hospitalScraper) {
-
+    public HospitalController(HospitalService hospitalService) {
         this.hospitalService = hospitalService;
-        this.hospitalScraper = hospitalScraper;
     }
+
+    // =========================
+    // Health Check
+    // =========================
 
     @GetMapping("/hello")
     public String hello() {
@@ -75,23 +71,13 @@ public class HospitalController {
         return "Hospital deleted successfully";
     }
 
-   
     // =========================
-    // Actual Scraper Import API
+    // Scraper Import API
     // =========================
 
     @PostMapping("/api/scraper/import")
-    public ImportResponse importHospitals() throws Exception {
+    public ImportResponse importHospitals()  {
 
-        String html = Files.readString(
-                Paths.get(
-                        "src/main/resources/hospital-directory.html"
-                )
-        );
-
-        List<Hospital> hospitals =
-                hospitalScraper.extractHospitals(html);
-
-        return hospitalService.saveHospitals(hospitals);
+        return hospitalService.scrapeAndImport();
     }
 }
