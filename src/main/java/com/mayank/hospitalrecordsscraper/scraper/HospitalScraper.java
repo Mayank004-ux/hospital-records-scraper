@@ -9,6 +9,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import com.mayank.hospitalrecordsscraper.entity.Hospital;
+import java.time.Duration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +29,7 @@ public class HospitalScraper {
 
     HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(url))
+            .timeout(Duration.ofSeconds(10))
             .GET()
             .build();
 

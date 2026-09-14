@@ -1,5 +1,6 @@
 package com.mayank.hospitalrecordsscraper.service;
 
+import com.mayank.hospitalrecordsscraper.exception.ScraperException;
 import com.mayank.hospitalrecordsscraper.dto.ImportResponse;
 import com.mayank.hospitalrecordsscraper.entity.Hospital;
 import com.mayank.hospitalrecordsscraper.repository.HospitalRepository;
@@ -35,21 +36,28 @@ public class HospitalService {
 
     public ImportResponse scrapeAndImport() {
 
-        try {
+    try {
+        List<Hospital> hospitals =
+                hospitalScraper.scrapeWebsite(scraperUrl);
 
-            List<Hospital> hospitals =
-                    hospitalScraper.scrapeWebsite(scraperUrl);
-
-            return saveHospitals(hospitals);
-
-        } catch (Exception e) {
-
-            throw new RuntimeException(
-                    "Unable to fetch hospital data from scraper website",
-                    e
+        if (hospitals.isEmpty()) {
+            throw new ScraperException(
+                    "No hospitals found on scraper website"
             );
         }
+
+        return saveHospitals(hospitals);
+
+    } catch (ScraperException e) {
+        throw e;
+
+    } catch (Exception e) {
+        throw new ScraperException(
+                "Unable to fetch hospital data from scraper website",
+                e
+        );
     }
+}
 
     // =========================
     // Get All Hospitals
